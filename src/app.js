@@ -4,20 +4,75 @@ const User = require("./models/user");
 
 const app = express();
 
-app.post("/signup", async (req, res) => {
-    const userObj = {
-        firstName: "Suvrajit",
-        lastName: "Ghosh",
-        email: "sj.suvrajit.sg@gmail.com",
-        age: 27,
+app.use(express.json());
+
+//get an user
+app.get("/user", async(req, res) => {
+    try {
+        const user = await User.findOne({email: req.body.email});
+        if(!user) {
+            res.status(404).send("User not found");
+        } else {
+            res.send(user);
+        }
+    } catch (err) {
+        res.status(400).send("Somthing went wrong");
     }
+})
+
+//get all user for Feed
+app.get("/feed", async(req, res) => {
+    try {
+        const users = await User.find();
+        if(users.length === 0) {
+            res.status(404).send("Users not found");
+        } else {
+            res.send(users);
+        }
+    } catch (err) {
+        res.status(400).send("Somthing went wrong");
+    }
+})
+
+app.post("/signup", async (req, res) => {
+    const user = new User(req.body);
     
     try {
-        const user = new User(userObj);
         await user.save();
         res.send("User Added successfully");
     } catch (err) {
         res.status(400).send("Error while adding user. Try again later.");
+    }
+})
+
+//update user
+app.patch("/user", async(req, res) => {
+    try {
+        const userId = req.body.userId;
+        const data = req.body;
+
+        const user = await User.findByIdAndUpdate(userId, data, 
+            {upsert: true}
+        );
+        console.log(user);
+
+        res.send("User updated successfully");
+    } catch (err) {
+        res.status(400).send("Somthing went wrong");
+    }
+})
+
+//delete user
+app.delete("/user", async(req, res) => {
+    try {
+        const userId = req.body.userId;
+
+        await User.findByIdAndDelete(userId);
+
+        res.send("User deleted successfully");
+        
+    } catch (err) {
+        res.status(400).send("Somthing went wrong");
     }
 })
 
@@ -30,7 +85,7 @@ connectDB()
             console.log('Server is up and running on Port 7777');
         });
     }).catch((err) => {
-        console.log("Database connection failed. Exiting now...");
+        console.log("Database connection failed. Exiting now...", err);
     })
 
 
