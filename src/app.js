@@ -48,17 +48,19 @@ app.post("/signup", async (req, res) => {
 //update user
 app.patch("/user", async(req, res) => {
     try {
-        const userId = req.body.userId;
+        //const userId = req.body.userId;
+        const email = req.body.email;
         const data = req.body;
 
-        const user = await User.findByIdAndUpdate(userId, data, 
-            {upsert: true}
-        );
-        console.log(user);
+        // const user = await User.findByIdAndUpdate(userId, data, 
+        //     {runValidators: true}
+        // );
+        // console.log(user);
+        const user = await User.findOneAndUpdate({ email: email}, data, { runValidators: true})
 
         res.send("User updated successfully");
     } catch (err) {
-        res.status(400).send("Somthing went wrong");
+        res.status(400).send("Error while updating user: " + err.message);
     }
 })
 
