@@ -46,17 +46,27 @@ app.post("/signup", async (req, res) => {
 })
 
 //update user
-app.patch("/user", async(req, res) => {
+app.patch("/user/:userId", async(req, res) => {
     try {
-        //const userId = req.body.userId;
-        const email = req.body.email;
+        const userId = req?.params.userId;
+        //const email = req.body.email;
         const data = req.body;
 
-        // const user = await User.findByIdAndUpdate(userId, data, 
-        //     {runValidators: true}
-        // );
-        // console.log(user);
-        const user = await User.findOneAndUpdate({ email: email}, data, { runValidators: true})
+        const ALLOWED_UPDATES = ["photoUrl", "about", "age", "gender", "skills"];
+
+        const isAllowed = Object.keys(data).every(k => ALLOWED_UPDATES.includes(k));
+        if(!isAllowed) {
+            throw new Error("Invalid updates!")
+        }
+
+        if(data?.skills.length > 10) {
+            throw new Error("Skills can't be more than 10");
+        }
+
+        const user = await User.findByIdAndUpdate(userId, data, 
+            {runValidators: true}
+        );
+        //const user = await User.findOneAndUpdate({ email: email}, data, { runValidators: true})
 
         res.send("User updated successfully");
     } catch (err) {
